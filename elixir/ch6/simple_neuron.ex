@@ -15,9 +15,8 @@ defmodule SimpleNeuron do
     receive do
       {from, input} ->
         :io.format("****Processing****~nInput:~p~nUsing Weights:~p~n", [input, weights])
-        dot_product = dot(input, weights, 0)
-        output = [:math.tanh(dot_product)]
-        from <- {:result, output}
+        output = dot(input, weights, 0) |> :math.tanh
+        from <- {:result, [output]}
         loop(weights)
     end
   end
