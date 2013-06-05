@@ -1,20 +1,20 @@
 defmodule SimplestNN do
   def create do
-    weights = [:random.uniform() - 0.5, :random.uniform() - 0.5, :random.uniform() - 0.5]
-    n_pid = Process.spawn(__MODULE__, :neuron, [weights, nil, nil])
+    n_pid = ([:random.uniform() - 0.5, :random.uniform() - 0.5, :random.uniform() - 0.5]
+      |> (fn weights -> Process.spawn(__MODULE__, :neuron, [weights, nil, nil]) end).())
     s_pid = Process.spawn(__MODULE__, :sensor, [n_pid])
     a_pid = Process.spawn(__MODULE__, :actuator, [n_pid])
     n_pid <- {:init, s_pid, a_pid}
-    Process.register(Process.spawn(__MODULE__, :cortex, [s_pid, n_pid, a_pid]), :cortex)
+    Process.spawn(__MODULE__, :cortex, [s_pid, n_pid, a_pid])
+      |> Process.register(:cortex)
   end
 
   def neuron(weights, s_pid, a_pid) do
     receive do
       {s_pid, :forward, input} ->
         :io.format("****Thinking****~nInput:~p~nwith Weights:~p~n", [input, weights])
-        dot_product = dot(input, weights, 0)
-        output = [:math.tanh(dot_product)]
-        a_pid <- {self(), :forward, output}
+        output = dot(input, weights, 0) |> :math.tanh
+        a_pid <- {self(), :forward, [output]}
         neuron(weights, s_pid, a_pid)
       {:init, new_spid, new_apid} ->
         neuron(weights, new_spid, new_apid)
