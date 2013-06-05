@@ -1,7 +1,8 @@
 defmodule SimpleNeuron do
   def create do
-    weights = [:random.uniform() - 0.5, :random.uniform() - 0.5, :random.uniform() - 0.5]
-    Process.register(Process.spawn(__MODULE__, :loop, [weights]), :neuron)
+    [:random.uniform() - 0.5, :random.uniform() - 0.5, :random.uniform() - 0.5]
+      |> (fn x -> Process.spawn(__MODULE__, :loop, [x]) end).()
+      |> Process.register(:neuron)
   end
 
   def dot([i|input], [w|weights], acc) do
